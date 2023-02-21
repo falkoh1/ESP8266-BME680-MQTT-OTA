@@ -39,27 +39,28 @@ void errLeds(void);
 void loadState(void);
 void updateState(void);
 
-// 
-#define wifi_ssid "YOUR-WLAN-SID"
-#define wifi_password "YOUR-WLAN-PWD"
+//begin configurable part 
+#define wifi_ssid "YOUR-WiFi-SID"
+#define wifi_password "YOUR-WiFi-PWD"
 #define mqtt_server "IP-ADRESS-MQTT-SERVER" //Format xxx.xxx.xxx.xxx
-#define mqtt_user ""         
-#define mqtt_password ""
+#define mqtt_user "YOUR-MQTT-USER"  //leave empty if not set        
+#define mqtt_password "YOUR-MQTT-PWD"  //leave empty if not set
 #define mqtt_port 1883
 #define ESPHostname "NAME-FOR_OTA"
 #define ESPPwd "PWD-FOR_OTA" 
 String clientId = "NAME-FOR-MQTT-CLIENT"; //MQTT reconnect
-
+//part for MQTT
 #define temp_topic "esp8266/bme680/temperature"
 #define hum_topic "esp8266/bme680/humidity"
 #define druck_topic "esp8266/bme680/pressure"
-#define iaq_topic "esp8266/bme680/gas"
-#define iaq_ac_topic "esp8266/bme680/iaqAc"
+#define iaq_topic "esp8266/bme680/iaq"
+#define iaq_ac_topic "esp8266/bme680/iaqAcc"
 #define eco2_topic "esp8266/bme680/co2"
 #define voc_topic "esp8266/bme680/voc"
 #define status_topic "esp8266/bme680/status"
 #define error_topic "esp8266/bme680/error"
-#define intopic "Sen-Schlaf-"
+#define intopic ""
+//end configurable part
 
 float temp = 0.0;
 float hum = 0.0;
@@ -93,7 +94,6 @@ void setup() {
   checkIaqSensorStatus();
   bme680.setConfig(bsec_config_iaq);
   checkIaqSensorStatus();
-
   loadState();
     
   bsec_virtual_sensor_t sensorList[7] = {
@@ -105,13 +105,9 @@ void setup() {
     BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_TEMPERATURE,
     BSEC_OUTPUT_SENSOR_HEAT_COMPENSATED_HUMIDITY,
   };
-  bme680.updateSubscription(sensorList, 7, BSEC_SAMPLE_RATE_LP); //3 sek, Strom <1mA
-  //bme680.updateSubscription(sensorList, 7, BSEC_SAMPLE_RATE_ULP); //300 sek, Strom <0.1mA, Batterienutzung  
-  checkIaqSensorStatus();
-  // header
-  output = "Timestamp [ms], raw temperature [°C], pressure [hPa], raw relative humidity [%], gas [Ohm], IAQ, IAQ accuracy, temperature [°C], relative humidity [%]";
-  Serial.println(output);
-}
+  bme680.updateSubscription(sensorList, 7, BSEC_SAMPLE_RATE_LP); //needs date every 3 sec for calibration
+    checkIaqSensorStatus();
+ }
 
 void loop() {
    if (!client.connected()) {
@@ -140,7 +136,7 @@ void getBME680Values() {
       client.publish(hum_topic, String(hum).c_str(), true);
 
       druck = (bme680.pressure)/100;
-      Serial.print("Druck: "); Serial.print(String(druck).c_str()); Serial.print(" hPa\t");
+      Serial.print("Pressure: "); Serial.print(String(druck).c_str()); Serial.print(" hPa\t");
       client.publish(druck_topic, String(druck).c_str(), true);
 
       IAQ = (bme680.iaq);
@@ -148,7 +144,7 @@ void getBME680Values() {
       client.publish(iaq_topic, String(IAQ).c_str(), true);
 
       IAQac = (bme680.iaqAccuracy);
-      Serial.print("IAQ-ac: "); Serial.print(String(IAQac).c_str()); Serial.print("\t");
+      Serial.print("IAQ-Acc: "); Serial.print(String(IAQac).c_str()); Serial.print("\t");
       client.publish(iaq_ac_topic, String(IAQac).c_str(), true);
 
       eCO2 = (bme680.co2Equivalent);
@@ -170,7 +166,7 @@ void getBME680Values() {
 
 void setup_wifi() {
   delay(10);
-  // We start by connecting to a WiFi network
+  //start connecting to a WiFi
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(wifi_ssid);
