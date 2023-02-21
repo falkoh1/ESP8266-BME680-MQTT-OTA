@@ -20,17 +20,6 @@ SDO         GND
 #include <PubSubClient.h>
 #include <ArduinoOTA.h>
 #include "bsec.h"
-// Create an object of the class Bsec
-Bsec bme680;
-uint8_t bsecState[BSEC_MAX_STATE_BLOB_SIZE] = {0};
-uint16_t stateUpdateCounter = 0;
-String output;
-
-//Write sensor calibration to file
-const uint8_t bsec_config_iaq[] = {
-#include "config/generic_33v_300s_4d/bsec_iaq.txt"
-};
-#define STATE_SAVE_PERIOD	UINT32_C(360 * 60 * 1000) // 360 minutes - 4 times a day
 
 // Helfer functions for calibration
 void checkIaqSensorStatus(void);
@@ -58,8 +47,19 @@ String clientId = "NAME-FOR-MQTT-CLIENT"; //MQTT reconnect
 #define voc_topic "esp8266/bme680/voc"
 #define status_topic "esp8266/bme680/status"
 #define error_topic "esp8266/bme680/error"
-#define intopic ""
 //end configurable part
+
+// Create an object of the class Bsec
+Bsec bme680;
+uint8_t bsecState[BSEC_MAX_STATE_BLOB_SIZE] = {0};
+uint16_t stateUpdateCounter = 0;
+String output;
+
+//Write sensor calibration to file
+const uint8_t bsec_config_iaq[] = {
+#include "config/generic_33v_300s_4d/bsec_iaq.txt"
+};
+#define STATE_SAVE_PERIOD	UINT32_C(360 * 60 * 1000) // 360 minutes - 4 times a day
 
 float temp = 0.0;
 float hum = 0.0;
@@ -70,7 +70,7 @@ int eCO2 = 0;
 int voc = 0;
 int error_Status = 0;
 const String error_Message="BME680 Sensor not found, check wirering";
-const int clock = 3000; //read sensor every 3 seconds
+const int senClock = 3000; //read sensor every 3 seconds
 long lastMsg = 0;
 char msg[50];
 
@@ -89,7 +89,6 @@ void setup() {
   
   Wire.begin(4,5);
   bme680.begin(BME680_I2C_ADDR_PRIMARY, Wire);
-  Serial.println(output);
   checkIaqSensorStatus();
   bme680.setConfig(bsec_config_iaq);
   checkIaqSensorStatus();
@@ -115,7 +114,7 @@ void loop() {
   client.loop();
   ArduinoOTA.handle(); 
   long now = millis();
-  if (now - lastMsg > clock) {   
+  if (now - lastMsg > senClock) {   
     lastMsg = now;
     getBME680Values();
   }
@@ -190,10 +189,10 @@ void callback(char* topic, byte* message, unsigned int length) {
     Serial.print((char)message[i]);
     messageTemp += (char)message[i];
   }
-  Serial.println();
-  if (String(topic) == intopic) {
-    // Room for Code on an intopic
-  }
+  //Serial.println();
+  //if (String(topic) == intopic) {
+  //  // Room for Code on an intopic
+  //}
 }
 
 void reconnect() {
@@ -208,7 +207,7 @@ void reconnect() {
       // Once connected, publish an announcement...
       client.publish(status_topic, ESPHostname);
       // ... and resubscribe
-      client.subscribe(intopic);
+      //client.subscribe(intopic);
   } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
