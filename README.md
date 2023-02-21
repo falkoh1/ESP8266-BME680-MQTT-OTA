@@ -1,2 +1,2 @@
 # ESP8266-BME680-MQTT-OTA
-ESP8266 with BME680 Sensor sends data via MQTT, OTA updateable
+Measure data from indoor sensor BME680, such as temperature, humidity, IAQ, CO2, calibration status and air pressure and send the data via MQTT to a remote MQTT server. The ESP8266 can be updated via WLAN.
