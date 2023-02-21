@@ -1,14 +1,13 @@
-/*
-Falko Höltzer
+/* Falko Höltzer
 Date created: 16.02.23
 Version: V1.2
-IDE: Arduino IDE 1.8.16
 
-Required libraries 
- - BSEC Software Library by Bosch Sensortec Enviroment Cluster V1.6.1480 - not 1.7.1492
- - PubSubClient by Nick ‘O Leary V2.8.0
- - ArduinoOTA by Juraj Andrassy V1.0.7  
-Borad Wirering:
+needed libraries 
+BSEC Software Library by Bosch Sensortec Enviroment Cluster V1.6.1480 - not 1.7.1492
+PubSubClient by Nick ‘O Leary V2.8.0
+ArduinoOTA by Juraj Andrassy V1.0.7  
+
+board wirering:
 BME680      WeMos D1 Mini 
 VCC         3.3V
 GND         GND
@@ -70,8 +69,8 @@ int IAQac = 0;
 int eCO2 = 0;
 int voc = 0;
 int error_Status = 0;
-const String error_Message="BME680 Sensor not found :-(";
-const int sensorTakt = 3000; //read sensor every 3 seconds
+const String error_Message="BME680 Sensor not found, check wirering";
+const int clock = 3000; //read sensor every 3 seconds
 long lastMsg = 0;
 char msg[50];
 
@@ -116,7 +115,7 @@ void loop() {
   client.loop();
   ArduinoOTA.handle(); 
   long now = millis();
-  if (now - lastMsg > sensorTakt) {   
+  if (now - lastMsg > clock) {   
     lastMsg = now;
     getBME680Values();
   }
